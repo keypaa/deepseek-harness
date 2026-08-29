@@ -30,11 +30,15 @@
 
 ## 搜索结果
 
-`SearchBlock` 渲染一次已完成的搜索，并通过 `kind` 判别，由一个组件处理两种结果。`matches`（grep）将每个文件显示为粗体路径头及其 `lineNumber: line` 行，各文件组均可折叠；`paths`（glob）显示扁平的路径列表。两者都摊平成一个行列表，由高度上限对其做头尾切片（默认 16，与 `TerminalBlock` 相同的切分算法），且都不软换行：较长的匹配行或路径会横向滚动而非折行。当工具截断结果时，banner 摘要会包含截断前的总数（grep 为 `显示 X / 共 N 处匹配 · K 个文件`，glob 为 `显示 X / 共 N 个路径`），使卡片绝不把截断后的结果呈现为完整结果；无论是否触及上限或哪些组处于折叠状态，复制控件都会写入完整的结构化结果。几何结构与 `CodeBlock`/`TerminalBlock` 一致。原理：[Web 搜索卡片笔记](../../../.agents/notes/implemented/feature/2026-07-30-web-search-card.md)。
+`SearchBlock` 渲染一次已完成的搜索，并通过 `kind` 判别，由一个组件处理两种结果。`matches`（grep）将每个文件显示为粗体路径头及其 `lineNumber: line` 行，各文件组均可折叠；`paths`（glob）显示扁平的路径列表。两者都摊平成一个行列表，由高度上限对其做头尾切片（默认 16，与 `TerminalBlock` 相同的切分算法），且都不软换行：较长的匹配行或路径会横向滚动而非折行。当工具截断结果时，banner 摘要会包含截断前的总数（默认为 `Showing X of N matches · K files` / `Showing X of N paths`，经 `labels` 本地化——`zh` 渲染为 `显示 X / 共 N 处匹配 · K 个文件` / `显示 X / 共 N 个路径`），使卡片绝不把截断后的结果呈现为完整结果；无论是否触及上限或哪些组处于折叠状态，复制控件都会写入完整的结构化结果。几何结构与 `CodeBlock`/`TerminalBlock` 一致。原理：[Web 搜索卡片笔记](../../../.agents/notes/implemented/feature/2026-07-30-web-search-card.md)。
 
 ## Web 检索
 
 `WebBlock` 渲染一次已完成的 web 检索，用一个组件绘制 `web` 渲染意图的两种 kind（由 `kind` 判别）。`search` 在有序引用列表上方显示可选的提供方回答（通过 `MarkdownText`）：每个 source 是一个安全外链，以其标题为标签，或以其主机名为标签，当 URL 无法解析或没有主机名（`file:`/`data:` URL）时回退到原始 URL，因此标签绝不为空；其下渲染 snippet 与发布日期。只有 http(s) URL 会成为锚点（设置 `target`/`rel`）——这是 `MarkdownText` 对不受信任链接所用 allowlist 的 http(s) 子集（该 allowlist 还允许 `mailto:`，此处排除）；任何其他 URL 渲染为纯文本。整份列表渲染在一个定高滚动容器里（`max-height: 320px`、`overflow-y: auto`），因此超出该高度的列表在原地纵向滚动，而不是把卡片撑高；`<li value>` 固定每个 source 的引用编号，从 1 起连续，而不依赖 `<ol>` 的隐式计数。当一次 search 合法地返回无 answer 且无 source 时，卡片显示一个明确的空状态提示，而不是空的 `<ol>`（chat 行不呈现原始 result content）。`fetch` 显示一个紧凑摘要：带链接的最终 URL 及其 HTTP 状态。两者都会标记一次被截断的检索。原理：[Web result 卡片笔记](../../../.agents/notes/implemented/feature/2026-07-30-web-result-card-frontend.md)与[来源滚动笔记](../../../.agents/notes/implemented/feature/2026-08-03-web-search-source-scroll.md)。
+
+## 可本地化的 labels
+
+`TerminalBlock`、`DiffBlock`、`ReadBlock` 与 `SearchBlock` 均为 zero-cordis，通过可选 `labels` prop（`*BlockLabels`：`copy`/`copied`/`collapse`/`collapseAria`/`expand`/`expandAria`，以及 diff 的 `footer`、search 的 `summary`/`empty`、read 的 `windowCount`）接收全部用户可见文案。每个原语按 `{ ...DEFAULT_*_LABELS, ...labels }` 合并 prop，未传字段保留内置英文默认值（`Copy`/`Copied`/`Collapse`/`... N more lines` 等）。持有方插件（`ui-tool`/`ui-conversation`）在渲染点（`ToolRow`、`ToolDetails`）通过 `terminalBlockLabels(t)` / `diffBlockLabels(t)` / `readBlockLabels(t)` / `searchBlockLabels(t)` 从 `conversation`（及 `common` 回退）locale 席位构造该 prop——label 层从不直接读取 `ctx.locale`。`FALLBACK_LOCALE='en'` 保证字典查找回退到英文，`scripts/verify-no-hardcoded-cjk.ts` 防止 `locales/` 字典之外出现新的硬编码中文。
 
 ## 模型体验
 
@@ -50,5 +54,5 @@
 - **字形级图标是重新绘制的近似版本**：鱼形标志（以及 ui-conversation 持有的闪光图标）来自字体字形，而本地设计数据无法导出其矢量几何；在获得精确导出路径前，使用手工重建版本代替。
 - **Pill 与 Input 没有设计来源**：两个原子组件均自行定义；与其相似的侧边栏搜索字段和视图标签条由消费方组合，不是这些原子组件。
 - **StateDot 没有 `Active` 变体**：支持的状态为 done、warning、ongoing 和 error。
-- **面向用户的文案经 label props 本地化，默认值为原中文字面量**：这些原子组件是 zero-cordis 的，拿不到 `ctx.locale`，因此 `HoverCard`（`copyLabel`/`copiedLabel`）、`TerminalBlock`（`labels`）、`JsonTree`（`labels`）、`CodeBlock`（`copyLabel`/`copiedLabel`）、`MarkdownText`（`codeLabels`）、`JsonBlock`（`truncatedLabel`）、`ConnectionBanner`（`label`）和 `Modal`（`closeLabel`）都把文案作为可选 props 接收。已本地化的插件用自己的 `t` 席位传入字典驱动的 label；什么都不传的消费方得到的就是这些默认值。`WebBlock` 尚未跟进这一模式：它的来源列表截断提示与 fetch 截断提示、以及空搜索提示仍是内联中文，待同样的 label-prop 处理。
+- **面向用户的文案经 label props 本地化，默认值为英文**：这些原子组件是 zero-cordis 的，拿不到 `ctx.locale`，因此 `HoverCard`（`copyLabel`/`copiedLabel`）、`TerminalBlock`（`labels` / `TerminalBlockLabels`）、`DiffBlock`（`labels` / `DiffBlockLabels`）、`ReadBlock`（`labels` / `ReadBlockLabels`）、`SearchBlock`（`labels` / `SearchBlockLabels`）、`JsonTree`（`labels`）、`CodeBlock`（`copyLabel`/`copiedLabel`）、`MarkdownText`（`codeLabels`）、`JsonBlock`（`truncatedLabel`）、`ConnectionBanner`（`label`）和 `Modal`（`closeLabel`）都把文案作为可选 props 接收。已本地化的插件用自己的 `t` 席位（四张卡片经 `ToolRow`/`ToolDetails` 处的 `terminalBlockLabels`/`diffBlockLabels`/`readBlockLabels`/`searchBlockLabels`，取 `common` + `conversation`）传入字典驱动的 label；什么都不传的消费方得到英文默认值。`WebBlock` 尚未跟进这一模式：它的来源列表截断提示与 fetch 截断提示、以及空搜索提示仍是内联中文，待同样的 label-prop 处理。见 Agent Note：[客户端 i18n 对齐](../../../.agents/notes/implemented/feature/2026-08-29-client-i18n-parity.md)。
 - **`TerminalBlock` 不是终端模拟器**：它渲染已结束或仍在运行的命令输出，而不是交互式会话：SGR 颜色与属性会被遵循，进度行所用的行内光标移动同样被遵循——回车、退格、行内擦除、制表位与字符宽度。绝对光标定位、清屏与备用屏幕序列会被剥离。基础 16 色中的洋红与青色没有对应 token，保持字面 rgb。
