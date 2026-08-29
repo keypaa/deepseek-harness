@@ -19,13 +19,17 @@ import type { ToolCallBlock } from './tool-call-model.ts'
  * @returns the full label set for {@link DiffBlockProps}'s `labels`.
  */
 export function diffBlockLabels(t: TranslateNS<'conversation'>): DiffBlockLabels {
+  const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    const value = t(key as never, params as never)
+    return value === key ? fallback : value
+  }
   return {
     copy: t('copy'),
     copied: t('copied'),
     collapse: t('collapse'),
     collapseAria: 'Collapse diff',
-    expand: hidden => t('terminal.expandRest', { n: hidden }) ?? `... ${hidden} more lines`,
-    expandAria: hidden => t('terminal.expandAria', { n: hidden }) ?? `Expand remaining ${hidden} diff lines`,
+    expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
+    expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} diff lines`),
     footer: (added, removed, files) => `+${added} -${removed} · ${files} file${files === 1 ? '' : 's'}`,
   }
 }

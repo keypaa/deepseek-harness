@@ -21,8 +21,45 @@
  * lost.
  * @module
  */
-import type { SearchBlockProps, SearchFileGroup } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { SearchBlockLabels, SearchBlockProps, SearchFileGroup } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ToolCallBlock } from './tool-call-model.ts'
+
+/**
+ * Build the SearchBlock display copy from the conversation locale seat —
+ * the one place the primitive's label surface pairs with this package's
+ * dictionary, shared by every search render site (chat row, details panel).
+ * @param t - the render site's conversation locale seat.
+ * @returns the full label set for {@link SearchBlockProps}'s `labels`.
+ */
+export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLabels {
+  const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    const value = t(key as never, params as never)
+    return value === key ? fallback : value
+  }
+  const isZh = t('collapse') === '收起'
+  return {
+    copy: t('copy'),
+    copied: t('copied'),
+    empty: isZh ? '无结果' : 'No results',
+    summary: (shown, total, truncated, kind, fileCount) => {
+      if (isZh) {
+        const count = truncated ? `显示 ${shown} / 共 ${total}` : `${shown}`
+        if (kind === 'paths') return `${count} 个路径`
+        return `${count} 处匹配 · ${fileCount} 个文件`
+      }
+      const count = truncated ? `Showing ${shown} of ${total}` : `${shown}`
+      if (kind === 'paths') return `${count} ${shown === 1 ? 'path' : 'paths'}`
+      const matchNoun = shown === 1 ? 'match' : 'matches'
+      const fileNoun = fileCount === 1 ? 'file' : 'files'
+      return `${count} ${matchNoun} · ${fileCount} ${fileNoun}`
+    },
+    collapse: t('collapse'),
+    collapseAria: 'Collapse results',
+    expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
+    expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} result lines`),
+  }
+}
 
 /**
  * Distributive `Omit`: a plain `Omit<A | B, K>` keeps only the keys common to
@@ -151,8 +188,7 @@ export function searchCardModel(block: ToolCallBlock): SearchCardModel | null {
   // client does not compile. Guard the paths shape explicitly: an unknown shape
   // falls to the generic path rather than being rendered as a paths card, which
   // would leave SearchBlock calling `.length`/`.map` on an absent `paths`.
-  // oxlint-disable-next-line typescript/no-unnecessary-condition -- shape is wire data; the compiled union cannot prove this exhaustive.
-  if (result.shape !== 'paths') return null
+  if ((result.shape as string) !== 'paths') return null
   // `paths` is likewise unchecked by the wire schema; a known shape with a
   // missing/malformed array would crash the paths card at `.map`.
   if (!Array.isArray(result.paths) || !result.paths.every((path): path is string => typeof path === 'string')) return null

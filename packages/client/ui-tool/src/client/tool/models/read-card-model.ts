@@ -13,8 +13,33 @@
  * until the result arrives.
  * @module
  */
-import type { ReadBlockLine, ReadBlockProps } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { ReadBlockLabels, ReadBlockLine, ReadBlockProps } from '@deepseek-ai/dsh-client-ui-primitives'
+import type { TranslateNS } from '@deepseek-ai/dsh-client-ui-slots'
 import { relativizeToCwd, type ToolCallBlock } from './tool-call-model.ts'
+
+/**
+ * Build the ReadBlock display copy from the conversation locale seat —
+ * the one place the primitive's label surface pairs with this package's
+ * dictionary, shared by every read render site (chat row, details panel).
+ * @param t - the render site's conversation locale seat.
+ * @returns the full label set for {@link ReadBlockProps}'s `labels`.
+ */
+export function readBlockLabels(t: TranslateNS<'conversation'>): ReadBlockLabels {
+  const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    const value = t(key as never, params as never)
+    return value === key ? fallback : value
+  }
+  const isZh = t('collapse') === '收起'
+  return {
+    copy: t('copy'),
+    copied: t('copied'),
+    windowCount: (shown, total) => isZh ? `显示 ${shown} / ${total} 行` : `Showing ${shown} of ${total} lines`,
+    collapse: t('collapse'),
+    collapseAria: 'Collapse content',
+    expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
+    expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} lines`),
+  }
+}
 
 /**
  * Content lines the chat row's resident read body shows before collapsing the
