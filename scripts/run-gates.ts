@@ -683,6 +683,7 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
     }),
     pnpmScript('client-packages', 'verify-client-packages', { label: 'client packages' }),
     pnpmScript('client-ui-i18n', 'verify-client-ui-i18n', { label: 'client UI i18n' }),
+    pnpmScript('no-hardcoded-cjk', 'verify-no-hardcoded-cjk', { label: 'no hardcoded CJK' }),
   ]
 }
 
