@@ -584,6 +584,7 @@ function hygieneLeafGates(options: { artifactNeeds?: string[] } = {}): Gate[] {
     pnpmScript('optional-dependency-imports', 'verify-optional-dependency-imports', {
       label: 'optional dependency imports',
     }),
+    pnpmScript('no-hardcoded-cjk', 'verify-no-hardcoded-cjk', { label: 'no hardcoded CJK' }),
   ]
 }
 

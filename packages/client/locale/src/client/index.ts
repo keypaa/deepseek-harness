@@ -55,7 +55,7 @@ export type LocaleDict = Record<string, string>
 export interface LocaleDefinition {
   /** Locale id (persisted; the setLocale argument). */
   id: LocaleId
-  /** Display name in its own language (中文 / English). */
+  /** Display name in its own language (Chinese / English). */
   label: string
 }
 
@@ -87,7 +87,7 @@ declare module '@deepseek-ai/cordis' {
 }
 
 /** Fallback locale consulted after the active locale misses (also the last-resort initial locale). */
-export const FALLBACK_LOCALE: LocaleId = 'zh'
+export const FALLBACK_LOCALE: LocaleId = 'en'
 
 /** Shared namespace for shell-level texts. */
 export const COMMON_NS = 'common'
@@ -97,14 +97,14 @@ export const SETTINGS_NS = 'settings.locale'
 
 /** The two shipped locales. */
 const LOCALES: readonly LocaleDefinition[] = Object.freeze([
-  { id: 'zh', label: '中文' },
+  { id: 'zh', label: '\u4e2d\u6587' },
   { id: 'en', label: 'English' },
 ])
 
 /**
  * Dictionary registry plus locale preference. Lookup chain per key: the
- * entry's namespace in the active locale -> that namespace's zh fallback ->
- * the shared common namespace (active, then zh) -> the key itself (missing
+ * entry's namespace in the active locale -> that namespace's en fallback ->
+ * the shared common namespace (active, then en) -> the key itself (missing
  * text stays visible, fail loud in the UI rather than blank). Reads go
  * through {@link getLocale}; writes only through {@link setLocale};
  * continuous sync through the `locale/change` event, or through the

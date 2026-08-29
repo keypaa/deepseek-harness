@@ -29,11 +29,11 @@ export function readBlockLabels(t: TranslateNS<'conversation'>): ReadBlockLabels
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
-  const isZh = t('collapse') === '收起'
+  const isZh = t('collapse') !== 'Collapse'
   return {
     copy: t('copy'),
     copied: t('copied'),
-    windowCount: (shown, total) => isZh ? `显示 ${shown} / ${total} 行` : `Showing ${shown} of ${total} lines`,
+    windowCount: (shown, total) => isZh ? `\u663e\u793a ${shown} / ${total} \u884c` : `Showing ${shown} of ${total} lines`,
     collapse: t('collapse'),
     collapseAria: 'Collapse content',
     expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),

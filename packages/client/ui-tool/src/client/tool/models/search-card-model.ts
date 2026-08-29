@@ -37,16 +37,16 @@ export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLa
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
-  const isZh = t('collapse') === '收起'
+  const isZh = t('collapse') !== 'Collapse'
   return {
     copy: t('copy'),
     copied: t('copied'),
-    empty: isZh ? '无结果' : 'No results',
+    empty: isZh ? '\u65e0\u7ed3\u679c' : 'No results',
     summary: (shown, total, truncated, kind, fileCount) => {
       if (isZh) {
-        const count = truncated ? `显示 ${shown} / 共 ${total}` : `${shown}`
-        if (kind === 'paths') return `${count} 个路径`
-        return `${count} 处匹配 · ${fileCount} 个文件`
+        const count = truncated ? `\u663e\u793a ${shown} / \u5171 ${total}` : `${shown}`
+        if (kind === 'paths') return `${count} \u4e2a\u8def\u5f84`
+        return `${count} \u5904\u5339\u914d \u00b7 ${fileCount} \u4e2a\u6587\u4ef6`
       }
       const count = truncated ? `Showing ${shown} of ${total}` : `${shown}`
       if (kind === 'paths') return `${count} ${shown === 1 ? 'path' : 'paths'}`
