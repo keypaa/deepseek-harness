@@ -10,12 +10,11 @@ import { resolve, sep } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
 const patterns = [
-  'packages/client/ui-*/src/**/*.{ts,tsx}',
-  'packages/client/locale/src/**/*.{ts,tsx}',
+  'packages/client/**/*.{ts,tsx}',
 ]
 const files = patterns.flatMap(p => globSync(p, { cwd: root }))
   .map(p => p.split(sep).join('/'))
-  .filter(p => !p.includes('locales') && !p.endsWith('.zh.md') && !p.endsWith('.i18n.yaml'))
+  .filter(p => !p.includes('locales') && !p.includes('/tests/') && !p.includes('/lib/') && !p.endsWith('.zh.md') && !p.endsWith('.i18n.yaml'))
   .sort()
 
 const CJK = /[\u4e00-\u9fff]/
@@ -23,6 +22,8 @@ const ESCAPED_CJK = /\\u([0-9a-fA-F]{4})/g
 const violations: string[] = []
 
 for (const rel of files) {
+  // Fixture data is intentional Chinese user content for snapshot fixtures, not product copy.
+  if (rel === 'packages/client/connection/src/client/fixture.ts') continue
   // Dictionary registrations co-located with their plugin (not under locales/): the
   // file defines both zh and en dicts inline, so its Chinese is the dictionary itself.
   if (
@@ -36,6 +37,8 @@ for (const rel of files) {
     if (line === undefined) continue
     // Intentional self-name for the locale selector; not product copy.
     if (rel === 'packages/client/locale/src/client/index.ts' && line.includes("label: '中文'")) continue
+    // Fixture history doc-comment describes the 已停止 marker; not product copy.
+    if (rel === 'packages/client/runtime/src/client/sessions/conversation.ts' && (line.includes('已停止') || line.includes('发送失败'))) continue
     // Stripping "(recommended)" suffixes in both locales; the regex must match both.
     if (rel === 'packages/client/ui-user-questions/src/client/QuestionComposer.tsx' && line.includes('推荐')) continue
     if (CJK.test(line)) {

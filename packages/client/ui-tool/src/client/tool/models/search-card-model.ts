@@ -44,14 +44,17 @@ export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLa
     summary: (shown, total, truncated, kind, fileCount) => {
       const fallbackCount = truncated ? `Showing ${shown} of ${total}` : `${shown}`
       if (kind === 'paths') {
-        const key = shown === 1 ? 'search.summary.path' : 'search.summary.paths'
+        const base = shown === 1 ? 'search.summary.path' : 'search.summary.paths'
+        const key = truncated ? `${base}.truncated` : base
         const fallback = `${fallbackCount} ${shown === 1 ? 'path' : 'paths'}`
         return withFallback(key, { shown, total, fileCount } as never, fallback)
       }
+      const base = shown === 1 ? 'search.summary.match' : 'search.summary.matches'
+      const key = truncated ? `${base}.truncated` : base
       const matchNoun = shown === 1 ? 'match' : 'matches'
       const fileNoun = fileCount === 1 ? 'file' : 'files'
       const fallback = `${fallbackCount} ${matchNoun} · ${fileCount} ${fileNoun}`
-      return withFallback('search.summary.matches', { shown, total, fileCount } as never, fallback)
+      return withFallback(key, { shown, total, fileCount } as never, fallback)
     },
     collapse: t('collapse'),
     collapseAria: 'Collapse results',

@@ -4,6 +4,11 @@
  * preference row into the settings General section — the locale feature owns
  * its own settings surface.
  */
+/* oxlint-disable typescript/no-redundant-type-constituents --
+ * `keyof LocaleNamespaceMap & string` is the declare-merge key pattern (see
+ * ui-slots): in THIS unit the map holds only this package's own merges, but
+ * consumers merge more namespaces in and the intersection keeps them
+ * string-typed. The rule fires on the narrow-map view, not real redundancy. */
 import type { Context } from '@deepseek-ai/cordis'
 import {
   type BoundActions, type LocaleDictOf, type LocaleNamespaceMap, type Translate, type TranslateNS,
@@ -326,6 +331,10 @@ function resolveInitialLocale(): LocaleId {
  */
 function detectBrowserLocale(): LocaleId | undefined {
   if (typeof window === 'undefined') return undefined
+  /* oxlint-disable-next-line typescript/no-unnecessary-condition --
+   * The DOM lib types `languages` as always present; embedders and older
+   * WebViews ship a Navigator without it, and spreading undefined would
+   * throw at boot. */
   for (const tag of [...(navigator.languages ?? []), navigator.language]) {
     const primary = tag.toLowerCase().split('-')[0]
     const match = LOCALES.find(locale => locale.id === primary)
