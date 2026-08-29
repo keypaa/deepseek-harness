@@ -35,6 +35,40 @@ export interface ReadBlockLine {
   text: string
 }
 
+/**
+ * Display copy for the read surface; the owner passes localized labels
+ * (this package is cordis-free, so copy arrives via props). Every field
+ * defaults to the built-in English value, so existing consumers render
+ * unchanged when `labels` is omitted.
+ */
+export interface ReadBlockLabels {
+  /** Copy-button idle label. */
+  copy: string
+  /** Copy-button label during the post-copy confirmation window. */
+  copied: string
+  /** Window count note, given the retained and total line counts. */
+  windowCount: (shown: number, total: number) => string
+  /** Collapse-toggle text while expanded. */
+  collapse: string
+  /** Collapse-toggle aria label while expanded. */
+  collapseAria: string
+  /** Expand-toggle text while capped, given the hidden line count. */
+  expand: (hidden: number) => string
+  /** Expand-toggle aria label while capped, given the hidden line count. */
+  expandAria: (hidden: number) => string
+}
+
+/** Built-in English copy for {@link ReadBlockLabels}. */
+export const DEFAULT_READ_LABELS: ReadBlockLabels = {
+  copy: 'Copy',
+  copied: 'Copied',
+  windowCount: (shown, total) => `Showing ${shown} of ${total} lines`,
+  collapse: 'Collapse',
+  collapseAria: 'Collapse content',
+  expand: hidden => `... ${hidden} more lines`,
+  expandAria: hidden => `Expand remaining ${hidden} lines`,
+}
+
 export interface ReadBlockProps {
   /** Banner label (the file path, or a tool-supplied replacement title); omitted draws no label. */
   label?: string | undefined
@@ -48,6 +82,8 @@ export interface ReadBlockProps {
   maxLines?: number | undefined
   /** Extra class merged onto the wrapper (callers position; this component draws). */
   className?: string | undefined
+  /** Localized display copy; omitted fields keep the built-in defaults. */
+  labels?: Partial<ReadBlockLabels> | undefined
 }
 
 /**
@@ -74,7 +110,12 @@ export function ReadBlock({
   lang,
   maxLines = DEFAULT_READ_MAX_LINES,
   className,
+  labels,
 }: ReadBlockProps) {
+  const readLabels = useMemo<ReadBlockLabels>(
+    () => (labels === undefined ? DEFAULT_READ_LABELS : { ...DEFAULT_READ_LABELS, ...labels }),
+    [labels],
+  )
   // The raw text the copy control writes and the highlighter tokenizes: the
   // window's lines joined by newlines, without the file numbers or any chrome.
   // Highlighting the whole window in one call (not line by line) keeps grammar
@@ -138,7 +179,7 @@ export function ReadBlock({
         <div className={css.label}>{label ?? ''}</div>
         <div className={css.action}>
           {windowed && (
-            <span className={css.count}>{`显示 ${lines.length} / ${totalLines} 行`}</span>
+            <span className={css.count}>{readLabels.windowCount(lines.length, totalLines)}</span>
           )}
           <span className={css.lang}>{lang ?? ''}</span>
           {/* Hide copy on an empty window, matching TerminalBlock's empty-output
@@ -147,7 +188,7 @@ export function ReadBlock({
               wipe the clipboard with an empty string. */}
           {lines.length > 0 && (
             <button type="button" className={css.copyButton} onClick={onCopy}>
-              {copied ? '复制成功' : '复制'}
+              {copied ? readLabels.copied : readLabels.copy}
             </button>
           )}
         </div>
@@ -159,10 +200,10 @@ export function ReadBlock({
             type="button"
             className={css.expand}
             aria-expanded={expanded}
-            aria-label={expanded ? '收起内容' : `展开其余 ${hidden} 行`}
+            aria-label={expanded ? readLabels.collapseAria : readLabels.expandAria(hidden)}
             onClick={onToggle}
           >
-            {expanded ? '收起' : `… 其余 ${hidden} 行`}
+            {expanded ? readLabels.collapse : readLabels.expand(hidden)}
           </button>
         )}
         {capped && rows(paired.slice(paired.length - tailLines))}
