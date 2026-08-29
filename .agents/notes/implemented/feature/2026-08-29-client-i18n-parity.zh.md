@@ -28,7 +28,7 @@ Status: implemented
 
 ## 影响
 
-- 会话中出现的所有卡片类型（`terminal`、`diff`、`read`、`search`）现在通过统一的 `*BlockLabels` prop 实现本地化，英文默认值与全局回退翻转一致。`WebBlock` 是唯一仍保留内联中文的空状态与截断提示的卡片，已在 `ui-primitives/README.md` 的 Known Limitations 中列出。
+- 会话中出现的所有卡片类型（`terminal`、`diff`、`read`、`search`）现在通过统一的 `*BlockLabels` prop 实现本地化，英文默认值与全局回退翻转一致。`WebBlock` 现在使用英文 literals（`No results found` / `Source list truncated` / `Content truncated`）默认，仍是唯一尚未通过 `*BlockLabels` 实现本地化的卡片；已在 `ui-primitives/README.md` 的 Known Limitations 中列为待同样的 label-prop 改造。
 
 - locale 查找现在按 `active -> en -> key` 解析，永不走 `active -> zh`。请求 `zh-*` 的浏览器仍落在 `zh`，其余落在 `en`。磁盘上无需迁移——`FALLBACK_LOCALE` 仅在查找时消费。
 

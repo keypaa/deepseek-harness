@@ -28,7 +28,7 @@ English | [中文](2026-08-29-client-i18n-parity.zh.md)
 
 ## Consequences
 
-- Every card kind that appears in the conversation (`terminal`, `diff`, `read`, `search`) is now locale-aware through a uniform `*BlockLabels` prop, with English defaults that match the flipped global fallback. `WebBlock` remains the only card whose empty and truncation notes are still inline Chinese and is listed in `ui-primitives/README.md` under Known Limitations.
+- Every card kind that appears in the conversation (`terminal`, `diff`, `read`, `search`) is now locale-aware through a uniform `*BlockLabels` prop, with English defaults that match the flipped global fallback. `WebBlock` now defaults to English literals (`No results found` / `Source list truncated` / `Content truncated`) and remains the only card not yet locale-aware via `*BlockLabels`; it is listed in `ui-primitives/README.md` under Known Limitations pending the same label-prop treatment.
 
 - Locale lookups now resolve `active -> en -> key`, never `active -> zh`. Browsers asking for `zh-*` still land in `zh`; all others land in `en`. No on-disk migration is needed — `FALLBACK_LOCALE` is consumed only at lookup time.
 

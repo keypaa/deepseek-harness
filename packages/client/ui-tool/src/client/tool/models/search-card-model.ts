@@ -34,6 +34,7 @@ import type { ToolCallBlock } from './tool-call-model.ts'
  */
 export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLabels {
   const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
@@ -47,6 +48,7 @@ export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLa
         const base = shown === 1 ? 'search.summary.path' : 'search.summary.paths'
         const key = truncated ? `${base}.truncated` : base
         const fallback = `${fallbackCount} ${shown === 1 ? 'path' : 'paths'}`
+        // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
         return withFallback(key, { shown, total, fileCount } as never, fallback)
       }
       const base = shown === 1 ? 'search.summary.match' : 'search.summary.matches'
@@ -54,10 +56,11 @@ export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLa
       const matchNoun = shown === 1 ? 'match' : 'matches'
       const fileNoun = fileCount === 1 ? 'file' : 'files'
       const fallback = `${fallbackCount} ${matchNoun} · ${fileCount} ${fileNoun}`
+      // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
       return withFallback(key, { shown, total, fileCount } as never, fallback)
     },
     collapse: t('collapse'),
-    collapseAria: 'Collapse results',
+    collapseAria: withFallback('terminal.collapseAria', undefined, 'Collapse results'),
     expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
     expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} result lines`),
   }
@@ -190,7 +193,8 @@ export function searchCardModel(block: ToolCallBlock): SearchCardModel | null {
   // client does not compile. Guard the paths shape explicitly: an unknown shape
   // falls to the generic path rather than being rendered as a paths card, which
   // would leave SearchBlock calling `.length`/`.map` on an absent `paths`.
-  if ((result.shape as string) !== 'paths') return null
+  // oxlint-disable-next-line typescript/no-unnecessary-condition -- shape is wire data; the compiled union cannot prove this exhaustive.
+  if (result.shape !== 'paths') return null
   // `paths` is likewise unchecked by the wire schema; a known shape with a
   // missing/malformed array would crash the paths card at `.map`.
   if (!Array.isArray(result.paths) || !result.paths.every((path): path is string => typeof path === 'string')) return null

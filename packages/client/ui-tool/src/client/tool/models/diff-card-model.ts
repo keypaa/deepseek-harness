@@ -20,6 +20,7 @@ import type { ToolCallBlock } from './tool-call-model.ts'
  */
 export function diffBlockLabels(t: TranslateNS<'conversation'>): DiffBlockLabels {
   const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
@@ -27,7 +28,7 @@ export function diffBlockLabels(t: TranslateNS<'conversation'>): DiffBlockLabels
     copy: t('copy'),
     copied: t('copied'),
     collapse: t('collapse'),
-    collapseAria: 'Collapse diff',
+    collapseAria: withFallback('terminal.collapseAria', undefined, 'Collapse diff'),
     expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
     expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} diff lines`),
     footer: (added, removed, files) => `+${added} -${removed} · ${files} file${files === 1 ? '' : 's'}`,

@@ -22,6 +22,7 @@ export function JsonBlock({ label, payload, defaultOpen = false, truncatedLabel 
     if (!open) return ''
     let s: string
     try {
+      // oxlint-disable-next-line typescript/no-unnecessary-condition -- JSON.stringify(payload: unknown) can return undefined
       s = JSON.stringify(payload, null, 2) ?? String(payload)
     } catch {
       s = String(payload)

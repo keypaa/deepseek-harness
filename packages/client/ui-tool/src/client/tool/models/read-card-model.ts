@@ -26,15 +26,17 @@ import { relativizeToCwd, type ToolCallBlock } from './tool-call-model.ts'
  */
 export function readBlockLabels(t: TranslateNS<'conversation'>): ReadBlockLabels {
   const withFallback = (key: string, params: Record<string, unknown> | undefined, fallback: string): string => {
+    // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
   return {
     copy: t('copy'),
     copied: t('copied'),
+    // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- withFallback calls t with dynamic keys
     windowCount: (shown, total) => withFallback('read.windowCount', { shown, total } as never, `Showing ${shown} of ${total} lines`),
     collapse: t('collapse'),
-    collapseAria: 'Collapse content',
+    collapseAria: withFallback('terminal.collapseAria', undefined, 'Collapse content'),
     expand: hidden => withFallback('terminal.expandRest', { n: hidden }, `... ${hidden} more lines`),
     expandAria: hidden => withFallback('terminal.expandAria', { n: hidden }, `Expand remaining ${hidden} lines`),
   }
