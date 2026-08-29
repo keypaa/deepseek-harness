@@ -291,6 +291,13 @@ describe('TerminalBlock height cap', () => {
     expect(view.container.querySelector('[aria-expanded]')).toBeNull()
   })
 
+  it('defaults to English when no labels provided', () => {
+    const view = render(<TerminalBlock command="echo hi" output={'a\nb\nc\nd\ne\nf\ng\nh\ni\nj\nk\nl\nm\nn\no\np\nq\nr\ns\nt\n'} maxLines={4} />)
+    expect(view.getByRole('button', { name: 'Copy' })).toBeTruthy()
+    expect(view.getByText('... 16 more lines')).toBeTruthy()
+    expect(view.queryByText('复制')).toBeNull()
+  })
+
   it('slices head and tail over the cap and expands on click', () => {
     const view = render(<TerminalBlock command="ls" output={body(10)} maxLines={4} />)
     // maxLines 4: head = ceil(4/2) = 2, tail = 4 - 2 = 2, 6 hidden.
