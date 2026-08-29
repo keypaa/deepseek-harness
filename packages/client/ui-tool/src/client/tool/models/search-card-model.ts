@@ -37,22 +37,21 @@ export function searchBlockLabels(t: TranslateNS<'conversation'>): SearchBlockLa
     const value = t(key as never, params as never)
     return value === key ? fallback : value
   }
-  const isZh = t('collapse') !== 'Collapse'
   return {
     copy: t('copy'),
     copied: t('copied'),
-    empty: isZh ? '\u65e0\u7ed3\u679c' : 'No results',
+    empty: withFallback('search.empty', undefined, 'No results'),
     summary: (shown, total, truncated, kind, fileCount) => {
-      if (isZh) {
-        const count = truncated ? `\u663e\u793a ${shown} / \u5171 ${total}` : `${shown}`
-        if (kind === 'paths') return `${count} \u4e2a\u8def\u5f84`
-        return `${count} \u5904\u5339\u914d \u00b7 ${fileCount} \u4e2a\u6587\u4ef6`
+      const fallbackCount = truncated ? `Showing ${shown} of ${total}` : `${shown}`
+      if (kind === 'paths') {
+        const key = shown === 1 ? 'search.summary.path' : 'search.summary.paths'
+        const fallback = `${fallbackCount} ${shown === 1 ? 'path' : 'paths'}`
+        return withFallback(key, { shown, total, fileCount } as never, fallback)
       }
-      const count = truncated ? `Showing ${shown} of ${total}` : `${shown}`
-      if (kind === 'paths') return `${count} ${shown === 1 ? 'path' : 'paths'}`
       const matchNoun = shown === 1 ? 'match' : 'matches'
       const fileNoun = fileCount === 1 ? 'file' : 'files'
-      return `${count} ${matchNoun} · ${fileCount} ${fileNoun}`
+      const fallback = `${fallbackCount} ${matchNoun} · ${fileCount} ${fileNoun}`
+      return withFallback('search.summary.matches', { shown, total, fileCount } as never, fallback)
     },
     collapse: t('collapse'),
     collapseAria: 'Collapse results',
